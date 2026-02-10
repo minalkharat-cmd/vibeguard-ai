@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeGuard AI — Enterprise Risk Intelligence Platform</title>
+  <meta name="description"
+    content="Enterprise-grade AI agent for on-chain token risk analysis on BNB Chain. 30+ GoPlus-equivalent detection fields, ERC-8004 agent identity, flash loan and MEV detection.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Animated Background -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+  </div>
+
+  <!-- Live Threat Feed Ticker -->
+  <div class="threat-ticker" id="threatTicker">
+    <div class="ticker-label">🔴 LIVE</div>
+    <div class="ticker-track" id="tickerTrack">
+      <div class="ticker-item critical">⚠️ CRITICAL: 0x7fa9..b3c2 — Honeypot detected (score: 94/100)</div>
+      <div class="ticker-item warning">🟡 WARNING: 0x3de1..f89a — Tax modifiable, owner can change fees</div>
+      <div class="ticker-item safe">🟢 SAFE: 0xbb4C..1234 — All 30 checks passed (score: 8/100)</div>
+      <div class="ticker-item critical">⚠️ CRITICAL: 0x91ab..4ef7 — Flash loan vulnerability in oracle</div>
+      <div class="ticker-item warning">🟡 MEV ALERT: 0xcdef..5678 — Sandwich attack pattern on PancakeSwap pair</div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path d="M16 2L4 8v8c0 7.73 5.12 14.97 12 16 6.88-1.03 12-8.27 12-16V8L16 2z" fill="url(#shieldGrad)"
+              opacity="0.15" />
+            <path d="M16 2L4 8v8c0 7.73 5.12 14.97 12 16 6.88-1.03 12-8.27 12-16V8L16 2z" stroke="url(#shieldGrad)"
+              stroke-width="1.5" fill="none" />
+            <path d="M12 16l3 3 5-6" stroke="url(#shieldGrad)" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <defs>
+              <linearGradient id="shieldGrad" x1="4" y1="2" x2="28" y2="26">
+                <stop stop-color="#06d6a0" />
+                <stop offset="1" stop-color="#118ab2" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">VibeGuard<span class="ai-badge">AI</span></span>
+        <span class="version-badge">Enterprise</span>
+      </div>
+      <nav class="nav">
+        <a href="#scanner">Scanner</a>
+        <a href="#detection-fields">Detection</a>
+        <a href="#agent-identity">Agent</a>
+        <a href="#watchlist">Watchlist</a>
+        <a href="#api">API</a>
+      </nav>
+      <div class="header-right">
+        <div class="agent-status">
+          <span class="status-dot"></span>
+          <span>Agent Live</span>
+        </div>
+        <div class="field-count-badge">30+ Fields</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">ERC-8004 Compliant • BNB Chain</div>
+        <h1>Enterprise Risk<br>Intelligence</h1>
+        <p class="hero-subtitle">30+ GoPlus-equivalent detection fields. Flash loan & MEV analysis. ERC-8004 agent
+          identity with on-chain reputation. The most comprehensive token scanner on BNB Chain.</p>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-value" id="statFields">33</span>
+            <span class="stat-label">Detection Fields</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-value" id="statScanned">12,847</span>
+            <span class="stat-label">Tokens Scanned</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-value" id="statThreats">2,391</span>
+            <span class="stat-label">Threats Blocked</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-value" id="statAgents">156</span>
+            <span class="stat-label">Agent Queries</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-nft">
+        <div class="nft-card">
+          <div class="nft-glow"></div>
+          <div class="nft-header">VIBEGUARD AI</div>
+          <div class="nft-title">Risk Certificate</div>
+          <div class="nft-gauge" id="heroGauge">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="8" />
+              <circle cx="60" cy="60" r="50" fill="none" stroke="url(#gaugeGrad)" stroke-width="8"
+                stroke-dasharray="314" stroke-dashoffset="220" stroke-linecap="round" transform="rotate(-90 60 60)" />
+              <defs>
+                <linearGradient id="gaugeGrad">
+                  <stop stop-color="#06d6a0" />
+                  <stop offset="1" stop-color="#ef4444" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="gauge-value">27</div>
+            <div class="gauge-label">LOW RISK</div>
+          </div>
+          <div class="nft-stats">
+            <div class="nft-stat"><span class="nft-stat-label">Honeypot</span><span
+                class="nft-stat-value safe">3%</span></div>
+            <div class="nft-stat"><span class="nft-stat-label">Rug Pull</span><span
+                class="nft-stat-value safe">8%</span></div>
+            <div class="nft-stat"><span class="nft-stat-label">MEV Risk</span><span
+                class="nft-stat-value warning">34%</span></div>
+            <div class="nft-stat"><span class="nft-stat-label">Flash Loan</span><span
+                class="nft-stat-value safe">12%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Enterprise Token Scanner -->
+  <section class="scanner" id="scanner">
+    <div class="container">
+      <div class="section-header">
+        <h2>Enterprise Token Scanner</h2>
+        <p>30+ detection fields • Flash loan analysis • MEV detection</p>
+      </div>
+      <div class="scanner-box">
+        <div class="scanner-input-row">
+          <input type="text" id="tokenInput" placeholder="Enter BEP-20 contract address (0x...)" class="scanner-input"
+            autocomplete="off">
+          <button id="scanBtn" class="scan-btn" onclick="startEnterpriseScan()">
+            <span class="scan-btn-text">Full Scan</span>
+            <span class="scan-btn-loader"></span>
+          </button>
+        </div>
+        <div class="quick-scans">
+          <span class="quick-label">Quick scan:</span>
+          <button class="quick-btn" onclick="quickScan('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c')">WBNB</button>
+          <button class="quick-btn" onclick="quickScan('0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56')">BUSD</button>
+          <button class="quick-btn" onclick="quickScan('0x55d398326f99059fF775485246999027B3197955')">USDT</button>
+          <button class="quick-btn danger" onclick="quickScan('0xDEAD000000000000000000000000000000001337')">⚠ Test
+            Scam</button>
+        </div>
+      </div>
+
+      <!-- Scan Results Area -->
+      <div class="results-area" id="resultsArea" style="display:none;">
+        <!-- Overview Card -->
+        <div class="result-overview" id="resultOverview">
+          <div class="overview-gauge" id="overviewGauge"></div>
+          <div class="overview-info">
+            <h3 id="resultTokenName">Token Name</h3>
+            <p id="resultAddress" class="mono">0x...</p>
+            <div class="result-badges" id="resultBadges"></div>
+          </div>
+          <div class="overview-scores">
+            <div class="mini-score" id="miniHoneypot"><span class="mini-label">Honeypot</span><span
+                class="mini-value">0</span></div>
+            <div class="mini-score" id="miniRug"><span class="mini-label">Rug Pull</span><span
+                class="mini-value">0</span></div>
+            <div class="mini-score" id="miniFlash"><span class="mini-label">Flash Loan</span><span
+                class="mini-value">0</span></div>
+            <div class="mini-score" id="miniMEV"><span class="mini-label">MEV Risk</span><span
+                class="mini-value">0</span></div>
+            <div class="mini-score" id="miniOwner"><span class="mini-label">Ownership</span><span
+                class="mini-value">0</span></div>
+            <div class="mini-score" id="miniTax"><span class="mini-label">Tax Risk</span><span
+                class="mini-value">0</span></div>
+          </div>
+        </div>
+
+        <!-- 30+ Detection Fields Grid -->
+        <div class="detection-grid" id="detectionGrid">
+          <h3>🔍 Detection Fields <span class="field-counter" id="fieldCounter">0 / 33</span></h3>
+          <div class="field-categories" id="fieldCategories">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- Findings List -->
+        <div class="findings-panel" id="findingsPanel">
+          <h3>📋 Detailed Findings</h3>
+          <div class="findings-list" id="findingsList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ERC-8004 Agent Identity Panel -->
+  <section class="agent-identity" id="agent-identity">
+    <div class="container">
+      <div class="section-header">
+        <h2>ERC-8004 Agent Identity</h2>
+        <p>On-chain identity, reputation, and validation registries</p>
+      </div>
+      <div class="agent-cards">
+        <!-- Identity Card -->
+        <div class="agent-card identity-card">
+          <div class="card-icon">🆔</div>
+          <h3>Identity Registry</h3>
+          <div class="agent-field">
+            <span class="field-key">Agent ID</span>
+            <span class="field-value mono">#0001</span>
+          </div>
+          <div class="agent-field">
+            <span class="field-key">Name</span>
+            <span class="field-value">VibeGuard Risk Scanner</span>
+          </div>
+          <div class="agent-field">
+            <span class="field-key">Type</span>
+            <span class="field-value badge-type">risk-scanner</span>
+          </div>
+          <div class="agent-field">
+            <span class="field-key">Chain</span>
+            <span class="field-value">eip155:56 (BNB Chain)</span>
+          </div>
+          <div class="agent-field">
+            <span class="field-key">Status</span>
+            <span class="field-value status-active">● Active</span>
+          </div>
+          <div class="agent-field">
+            <span class="field-key">Services</span>
+            <div class="service-tags">
+              <span class="service-tag">Web</span>
+              <span class="service-tag">A2A</span>
+              <span class="service-tag">MCP</span>
+            </div>
+          </div>
+          <div class="agent-field">
+            <span class="field-key">Trust Models</span>
+            <div class="service-tags">
+              <span class="service-tag trust">Reputation</span>
+              <span class="service-tag trust">Crypto-economic</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reputation Card -->
+        <div class="agent-card reputation-card">
+          <div class="card-icon">⭐</div>
+          <h3>Reputation Registry</h3>
+          <div class="rep-score-display">
+            <div class="rep-stars">
+              <span class="star filled">★</span>
+              <span class="star filled">★</span>
+              <span class="star filled">★</span>
+              <span class="star filled">★</span>
+              <span class="star half">★</span>
+            </div>
+            <span class="rep-value">4.6 / 5.0</span>
+          </div>
+          <div class="rep-metrics">
+            <div class="rep-metric">
+              <span class="metric-label">Accuracy</span>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width:94%"></div>
+              </div>
+              <span class="metric-value">94%</span>
+            </div>
+            <div class="rep-metric">
+              <span class="metric-label">Uptime</span>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width:99%"></div>
+              </div>
+              <span class="metric-value">99.7%</span>
+            </div>
+            <div class="rep-metric">
+              <span class="metric-label">Response Time</span>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width:87%"></div>
+              </div>
+              <span class="metric-value">340ms</span>
+            </div>
+            <div class="rep-metric">
+              <span class="metric-label">Success Rate</span>
+              <div class="metric-bar">
+                <div class="metric-fill" style="width:91%"></div>
+              </div>
+              <span class="metric-value">91%</span>
+            </div>
+          </div>
+          <div class="rep-feedback-count">
+            <span class="mono">156</span> on-chain feedbacks from <span class="mono">89</span> unique clients
+          </div>
+        </div>
+
+        <!-- Validation Card -->
+        <div class="agent-card validation-card">
+          <div class="card-icon">✅</div>
+          <h3>Validation Registry</h3>
+          <div class="validation-stats">
+            <div class="val-stat">
+              <span class="val-number">47</span>
+              <span class="val-label">Total Requests</span>
+            </div>
+            <div class="val-stat">
+              <span class="val-number">44</span>
+              <span class="val-label">Passed</span>
+            </div>
+            <div class="val-stat">
+              <span class="val-number">3</span>
+              <span class="val-label">Failed</span>
+            </div>
+          </div>
+          <div class="val-pass-rate">
+            <div class="pass-bar">
+              <div class="pass-fill" style="width:93.6%"></div>
+            </div>
+            <span class="pass-text">93.6% pass rate</span>
+          </div>
+          <div class="recent-validations">
+            <div class="val-item passed"><span class="val-hash mono">0xa3b8..d1e2</span><span class="val-result">✓
+                100</span></div>
+            <div class="val-item passed"><span class="val-hash mono">0x7f92..c4a1</span><span class="val-result">✓
+                95</span></div>
+            <div class="val-item failed"><span class="val-hash mono">0xb2c1..e9f3</span><span class="val-result">✗
+                12</span></div>
+            <div class="val-item passed"><span class="val-hash mono">0x5e4d..a8b7</span><span class="val-result">✓
+                88</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Token Watchlist -->
+  <section class="watchlist" id="watchlist">
+    <div class="container">
+      <div class="section-header">
+        <h2>Token Watchlist</h2>
+        <p>Track risk trends for your monitored tokens</p>
+      </div>
+      <div class="watchlist-table">
+        <div class="wl-header">
+          <span class="wl-col">Token</span>
+          <span class="wl-col">Risk</span>
+          <span class="wl-col">Honeypot</span>
+          <span class="wl-col">Rug Pull</span>
+          <span class="wl-col">Flash Loan</span>
+          <span class="wl-col">MEV</span>
+          <span class="wl-col">Trend</span>
+          <span class="wl-col">Action</span>
+        </div>
+        <div id="watchlistBody">
+          <div class="wl-row">
+            <span class="wl-col"><span class="token-icon wbnb">W</span>WBNB</span>
+            <span class="wl-col"><span class="risk-pill safe">8</span></span>
+            <span class="wl-col safe-text">2%</span>
+            <span class="wl-col safe-text">0%</span>
+            <span class="wl-col safe-text">5%</span>
+            <span class="wl-col warning-text">18%</span>
+            <span class="wl-col trend-stable">→</span>
+            <span class="wl-col"><button class="wl-remove" onclick="removeFromWatchlist(0)">✕</button></span>
+          </div>
+          <div class="wl-row">
+            <span class="wl-col"><span class="token-icon busd">B</span>BUSD</span>
+            <span class="wl-col"><span class="risk-pill safe">5</span></span>
+            <span class="wl-col safe-text">0%</span>
+            <span class="wl-col safe-text">0%</span>
+            <span class="wl-col safe-text">3%</span>
+            <span class="wl-col safe-text">8%</span>
+            <span class="wl-col trend-stable">→</span>
+            <span class="wl-col"><button class="wl-remove" onclick="removeFromWatchlist(1)">✕</button></span>
+          </div>
+          <div class="wl-row">
+            <span class="wl-col"><span class="token-icon danger">⚠</span>ScamToken</span>
+            <span class="wl-col"><span class="risk-pill critical">92</span></span>
+            <span class="wl-col critical-text">89%</span>
+            <span class="wl-col critical-text">95%</span>
+            <span class="wl-col warning-text">45%</span>
+            <span class="wl-col critical-text">72%</span>
+            <span class="wl-col trend-up">↑</span>
+            <span class="wl-col"><button class="wl-remove" onclick="removeFromWatchlist(2)">✕</button></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <h2>How It Works</h2>
+        <p>Six-phase enterprise analysis pipeline</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-number">01</div>
+          <div class="step-icon">🔍</div>
+          <h3>Bytecode Scan</h3>
+          <p>Decompile and scan for 30+ dangerous function selectors including mint, pause, blacklist, selfdestruct.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">02</div>
+          <div class="step-icon">📜</div>
+          <h3>Source Analysis</h3>
+          <p>Pattern matching against honeypot, rug pull, tax manipulation, and fraud indicators in verified source.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">03</div>
+          <div class="step-icon">💰</div>
+          <h3>Flash Loan Detection</h3>
+          <p>Oracle vulnerability analysis — spot vs TWAP, callback protection, price manipulation vectors.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">04</div>
+          <div class="step-icon">🥪</div>
+          <h3>MEV Analysis</h3>
+          <p>Sandwich attack susceptibility, slippage exposure, trading cooldown evaluation, bot pattern detection.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">05</div>
+          <div class="step-icon">⛓️</div>
+          <h3>On-Chain Publish</h3>
+          <p>Risk scores minted as Dynamic NFTs on BNB Chain — queryable by any smart contract or AI agent.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">06</div>
+          <div class="step-icon">🤖</div>
+          <h3>Agent Queries</h3>
+          <p>ERC-8004 identity enables reputation-verified responses to other agents via <code>queryRisk()</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Enterprise Features</h2>
+        <p>Production-grade security infrastructure</p>
+      </div>
+      <div class="features-grid enterprise">
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>30+ Detection Fields</h3>
+          <p>GoPlus-equivalent security analysis: honeypot, proxy, fake token, hidden owner, and 26 more fields.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Flash Loan Scanner</h3>
+          <p>Detects oracle manipulation vectors, unprotected callbacks, and single-block price manipulation risks.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🥪</div>
+          <h3>MEV Protection</h3>
+          <p>Sandwich attack analysis, slippage exposure scoring, and trading cooldown evaluation.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🆔</div>
+          <h3>ERC-8004 Identity</h3>
+          <p>On-chain agent identity NFT with reputation registry and pluggable validation framework.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔴</div>
+          <h3>Live Threat Feed</h3>
+          <p>Real-time scrolling ticker of detected threats across the BNB Chain ecosystem.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Risk Watchlist</h3>
+          <p>Persistent token watchlist with trend tracking, multi-dimensional risk columns, and alerting.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔗</div>
+          <h3>Agent-to-Agent API</h3>
+          <p>Any smart contract or AI agent can call <code>queryRisk()</code> and <code>isSafe()</code> on-chain.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🚨</div>
+          <h3>Circuit Breaker</h3>
+          <p>Emergency pause mechanism (Pausable) protects the registry during critical incidents.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API Section -->
+  <section class="api-section" id="api">
+    <div class="container">
+      <div class="section-header">
+        <h2>Agent API</h2>
+        <p>For AI agents, DeFi protocols, and trading bots</p>
+      </div>
+      <div class="code-tabs">
+        <div class="tab-buttons">
+          <button class="tab-btn active" onclick="switchTab('solidity')">Solidity</button>
+          <button class="tab-btn" onclick="switchTab('javascript')">JavaScript</button>
+          <button class="tab-btn" onclick="switchTab('erc8004')">ERC-8004</button>
+        </div>
+        <div class="tab-content active" id="tab-solidity">
+          <pre><code><span class="comment">// Before executing a trade, check token safety</span>
+<span class="keyword">IVibeGuardRiskNFT</span> vibeGuard = <span class="keyword">IVibeGuardRiskNFT</span>(<span class="string">0x...</span>);
+
+<span class="comment">// Quick safety check (returns bool)</span>
+<span class="keyword">bool</span> safe = vibeGuard.<span class="function">isSafe</span>(tokenAddress, <span class="number">50</span>);
+<span class="keyword">require</span>(safe, <span class="string">"Token risk too high"</span>);
+
+<span class="comment">// Get risk score with level and timestamp</span>
+(<span class="keyword">uint8</span> score, <span class="keyword">string memory</span> level, <span class="keyword">uint256</span> updated) =
+    vibeGuard.<span class="function">queryRisk</span>(tokenAddress);
+
+<span class="comment">// Full 4-dimensional risk breakdown</span>
+<span class="keyword">VibeGuardRiskNFT.RiskData memory</span> report =
+    vibeGuard.<span class="function">getFullRiskReport</span>(tokenAddress);</code></pre>
+        </div>
+        <div class="tab-content" id="tab-javascript">
+          <pre><code><span class="keyword">const</span> { ethers } = <span class="function">require</span>(<span class="string">'ethers'</span>);
+<span class="keyword">const</span> provider = <span class="keyword">new</span> ethers.<span class="function">JsonRpcProvider</span>(<span class="string">'https://bsc-dataseed.binance.org/'</span>);
+
+<span class="comment">// Connect to VibeGuard contract</span>
+<span class="keyword">const</span> vibeGuard = <span class="keyword">new</span> ethers.<span class="function">Contract</span>(
+  <span class="string">'0x...'</span>, vibeGuardABI, provider
+);
+
+<span class="comment">// Check if token is safe (score <= 50)</span>
+<span class="keyword">const</span> safe = <span class="keyword">await</span> vibeGuard.<span class="function">isSafe</span>(tokenAddr, <span class="number">50</span>);
+
+<span class="comment">// Query risk with flash loan + MEV data</span>
+<span class="keyword">const</span> report = <span class="keyword">await</span> vibeGuard.<span class="function">getFullRiskReport</span>(tokenAddr);
+console.<span class="function">log</span>(<span class="string">`Risk: ${report.riskScore}/100 (${report.riskLevel})`</span>);</code></pre>
+        </div>
+        <div class="tab-content" id="tab-erc8004">
+          <pre><code><span class="comment">// ERC-8004: Register agent identity</span>
+<span class="keyword">IVibeGuardAgentRegistry</span> registry = <span class="keyword">IVibeGuardAgentRegistry</span>(<span class="string">0x...</span>);
+
+<span class="comment">// Register VibeGuard as an ERC-8004 agent</span>
+<span class="keyword">uint256</span> agentId = registry.<span class="function">registerAgent</span>(
+  agentWallet,
+  <span class="string">"risk-scanner"</span>,
+  <span class="string">"ipfs://QmVibeGuardRegistration..."</span>
+);
+
+<span class="comment">// Give feedback to an agent (reputation)</span>
+registry.<span class="function">giveFeedback</span>(
+  agentId,
+  <span class="number">92</span>,     <span class="comment">// value: 92/100 accuracy</span>
+  <span class="number">0</span>,      <span class="comment">// valueDecimals</span>
+  <span class="string">"accuracy"</span>,  <span class="comment">// tag1</span>
+  <span class="string">""</span>,          <span class="comment">// tag2</span>
+  <span class="string">""</span>, <span class="string">""</span>, <span class="keyword">bytes32</span>(<span class="number">0</span>)
+);
+
+<span class="comment">// Query agent reputation</span>
+(<span class="keyword">int256</span> avg, <span class="keyword">uint256</span> count) =
+  registry.<span class="function">getAverageReputation</span>(agentId);</code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="logo-text">VibeGuard<span class="ai-badge">AI</span></div>
+          <p>Enterprise risk intelligence for BNB Chain</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Product</h4>
+            <a href="#scanner">Token Scanner</a>
+            <a href="#detection-fields">Detection Fields</a>
+            <a href="#agent-identity">Agent Identity</a>
+            <a href="#api">API Docs</a>
+          </div>
+          <div class="footer-col">
+            <h4>Standards</h4>
+            <a href="https://eips.ethereum.org/EIPS/eip-8004" target="_blank">ERC-8004</a>
+            <a href="#">ERC-721</a>
+            <a href="#">OpenClaw SDK</a>
+            <a href="#">BNB Chain</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>Good Vibes Only: OpenClaw Edition | BNBChain Hackathon 2026</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
