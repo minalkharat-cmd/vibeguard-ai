@@ -1,10 +1,12 @@
 /**
  * VibeGuard AI — Enterprise Dashboard Application
- * Handles: 30+ field scanning, threat feed, watchlist, agent identity, tab switching
+ * ALL SCANS ARE REAL — powered by BscScan API + bytecode analysis via Express backend.
  */
 
+const API_BASE = window.location.origin;
+
 // ============================================================
-//  DETECTION FIELD DEFINITIONS (Mirror of contractAnalyzer.js)
+//  DETECTION FIELD DEFINITIONS (labels for display)
 // ============================================================
 const DETECTION_FIELDS = {
     is_open_source: { label: 'Open Source', category: 'Contract Security' },
@@ -45,65 +47,7 @@ const DETECTION_FIELDS = {
 };
 
 // ============================================================
-//  SIMULATED SCAN DATA (for demo — in production, calls Agent API)
-// ============================================================
-const SCAN_PRESETS = {
-    '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c': {
-        name: 'Wrapped BNB', overallRisk: 8, riskLevel: 'SAFE',
-        honeypotScore: 2, rugPullScore: 0, flashLoanRisk: 5, mevRisk: 18,
-        ownershipRisk: 3, taxRisk: 0,
-        fields: { is_open_source: { d: true, s: 'safe' }, is_proxy: { d: false, s: 'safe' }, has_selfdestruct: { d: false, s: 'safe' }, has_external_call: { d: false, s: 'safe' }, is_upgradeable: { d: false, s: 'safe' }, has_assembly: { d: false, s: 'safe' }, is_honeypot: { d: false, s: 'safe' }, transfer_pausable: { d: false, s: 'safe' }, is_blacklisted: { d: false, s: 'safe' }, is_whitelisted: { d: false, s: 'safe' }, trading_cooldown: { d: false, s: 'safe' }, has_trading_toggle: { d: false, s: 'safe' }, personal_slippage_mod: { d: false, s: 'safe' }, hidden_owner: { d: false, s: 'safe' }, can_take_back_ownership: { d: false, s: 'safe' }, owner_change_balance: { d: false, s: 'safe' }, is_ownership_renounced: { d: true, s: 'safe' }, is_mintable: { d: true, s: 'warning' }, is_burnable: { d: false, s: 'safe' }, unlimited_supply: { d: false, s: 'safe' }, tax_modifiable: { d: false, s: 'safe' }, has_buy_tax: { d: false, s: 'safe' }, has_sell_tax: { d: false, s: 'safe' }, high_tax_risk: { d: false, s: 'safe' }, is_buy_back: { d: false, s: 'safe' }, is_anti_whale: { d: false, s: 'safe' }, anti_whale_modifiable: { d: false, s: 'safe' }, has_max_tx: { d: false, s: 'safe' }, has_max_wallet: { d: false, s: 'safe' }, fake_token: { d: false, s: 'safe' }, fake_standard_interface: { d: false, s: 'safe' }, can_reinit: { d: false, s: 'safe' }, can_remove_liquidity: { d: false, s: 'safe' }, has_liquidity_lock: { d: true, s: 'safe' }, owner_can_drain: { d: false, s: 'safe' } },
-        verified: true, isProxy: false,
-        findings: [
-            { name: 'is_mintable', severity: 'warning', detail: 'WBNB supports deposit/mint — expected for wrapped token' },
-        ],
-    },
-    '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56': {
-        name: 'BUSD', overallRisk: 5, riskLevel: 'SAFE',
-        honeypotScore: 0, rugPullScore: 0, flashLoanRisk: 3, mevRisk: 8,
-        ownershipRisk: 5, taxRisk: 0,
-        fields: { is_open_source: { d: true, s: 'safe' }, is_proxy: { d: true, s: 'warning' }, has_selfdestruct: { d: false, s: 'safe' }, has_external_call: { d: false, s: 'safe' }, is_upgradeable: { d: true, s: 'warning' }, has_assembly: { d: false, s: 'safe' }, is_honeypot: { d: false, s: 'safe' }, transfer_pausable: { d: true, s: 'info' }, is_blacklisted: { d: true, s: 'info' }, is_whitelisted: { d: false, s: 'safe' }, trading_cooldown: { d: false, s: 'safe' }, has_trading_toggle: { d: false, s: 'safe' }, personal_slippage_mod: { d: false, s: 'safe' }, hidden_owner: { d: false, s: 'safe' }, can_take_back_ownership: { d: false, s: 'safe' }, owner_change_balance: { d: false, s: 'safe' }, is_ownership_renounced: { d: false, s: 'safe' }, is_mintable: { d: true, s: 'info' }, is_burnable: { d: true, s: 'safe' }, unlimited_supply: { d: false, s: 'safe' }, tax_modifiable: { d: false, s: 'safe' }, has_buy_tax: { d: false, s: 'safe' }, has_sell_tax: { d: false, s: 'safe' }, high_tax_risk: { d: false, s: 'safe' }, is_buy_back: { d: false, s: 'safe' }, is_anti_whale: { d: false, s: 'safe' }, anti_whale_modifiable: { d: false, s: 'safe' }, has_max_tx: { d: false, s: 'safe' }, has_max_wallet: { d: false, s: 'safe' }, fake_token: { d: false, s: 'safe' }, fake_standard_interface: { d: false, s: 'safe' }, can_reinit: { d: false, s: 'safe' }, can_remove_liquidity: { d: false, s: 'safe' }, has_liquidity_lock: { d: true, s: 'safe' }, owner_can_drain: { d: false, s: 'safe' } },
-        verified: true, isProxy: true,
-        findings: [
-            { name: 'is_proxy', severity: 'info', detail: 'BUSD is a proxy contract — Binance-managed, upgradeability expected' },
-            { name: 'transfer_pausable', severity: 'info', detail: 'Pause mechanism present — standard for regulated stablecoin' },
-        ],
-    },
-    '0x55d398326f99059fF775485246999027B3197955': {
-        name: 'BSC-USD (USDT)', overallRisk: 6, riskLevel: 'SAFE',
-        honeypotScore: 0, rugPullScore: 0, flashLoanRisk: 4, mevRisk: 10,
-        ownershipRisk: 8, taxRisk: 0,
-        fields: { is_open_source: { d: true, s: 'safe' }, is_proxy: { d: false, s: 'safe' }, has_selfdestruct: { d: false, s: 'safe' }, has_external_call: { d: false, s: 'safe' }, is_upgradeable: { d: false, s: 'safe' }, has_assembly: { d: false, s: 'safe' }, is_honeypot: { d: false, s: 'safe' }, transfer_pausable: { d: true, s: 'info' }, is_blacklisted: { d: true, s: 'info' }, is_whitelisted: { d: false, s: 'safe' }, trading_cooldown: { d: false, s: 'safe' }, has_trading_toggle: { d: false, s: 'safe' }, personal_slippage_mod: { d: false, s: 'safe' }, hidden_owner: { d: false, s: 'safe' }, can_take_back_ownership: { d: false, s: 'safe' }, owner_change_balance: { d: false, s: 'safe' }, is_ownership_renounced: { d: false, s: 'safe' }, is_mintable: { d: true, s: 'info' }, is_burnable: { d: true, s: 'safe' }, unlimited_supply: { d: false, s: 'safe' }, tax_modifiable: { d: false, s: 'safe' }, has_buy_tax: { d: false, s: 'safe' }, has_sell_tax: { d: false, s: 'safe' }, high_tax_risk: { d: false, s: 'safe' }, is_buy_back: { d: false, s: 'safe' }, is_anti_whale: { d: false, s: 'safe' }, anti_whale_modifiable: { d: false, s: 'safe' }, has_max_tx: { d: false, s: 'safe' }, has_max_wallet: { d: false, s: 'safe' }, fake_token: { d: false, s: 'safe' }, fake_standard_interface: { d: false, s: 'safe' }, can_reinit: { d: false, s: 'safe' }, can_remove_liquidity: { d: false, s: 'safe' }, has_liquidity_lock: { d: true, s: 'safe' }, owner_can_drain: { d: false, s: 'safe' } },
-        verified: true, isProxy: false,
-        findings: [],
-    },
-};
-
-// Default scam token scan
-const SCAM_SCAN = {
-    name: 'Unknown Token', overallRisk: 87, riskLevel: 'CRITICAL',
-    honeypotScore: 89, rugPullScore: 82, flashLoanRisk: 45, mevRisk: 62,
-    ownershipRisk: 75, taxRisk: 90,
-    fields: { is_open_source: { d: false, s: 'critical' }, is_proxy: { d: true, s: 'warning' }, has_selfdestruct: { d: true, s: 'critical' }, has_external_call: { d: true, s: 'warning' }, is_upgradeable: { d: true, s: 'warning' }, has_assembly: { d: true, s: 'warning' }, is_honeypot: { d: true, s: 'critical' }, transfer_pausable: { d: true, s: 'critical' }, is_blacklisted: { d: true, s: 'critical' }, is_whitelisted: { d: true, s: 'warning' }, trading_cooldown: { d: true, s: 'warning' }, has_trading_toggle: { d: true, s: 'critical' }, personal_slippage_mod: { d: true, s: 'critical' }, hidden_owner: { d: true, s: 'critical' }, can_take_back_ownership: { d: true, s: 'critical' }, owner_change_balance: { d: true, s: 'critical' }, is_ownership_renounced: { d: false, s: 'critical' }, is_mintable: { d: true, s: 'critical' }, is_burnable: { d: false, s: 'safe' }, unlimited_supply: { d: true, s: 'critical' }, tax_modifiable: { d: true, s: 'critical' }, has_buy_tax: { d: true, s: 'warning' }, has_sell_tax: { d: true, s: 'critical' }, high_tax_risk: { d: true, s: 'critical' }, is_buy_back: { d: false, s: 'safe' }, is_anti_whale: { d: true, s: 'warning' }, anti_whale_modifiable: { d: true, s: 'warning' }, has_max_tx: { d: true, s: 'warning' }, has_max_wallet: { d: true, s: 'warning' }, fake_token: { d: true, s: 'critical' }, fake_standard_interface: { d: true, s: 'critical' }, can_reinit: { d: true, s: 'critical' }, can_remove_liquidity: { d: true, s: 'critical' }, has_liquidity_lock: { d: false, s: 'critical' }, owner_can_drain: { d: true, s: 'critical' } },
-    verified: false, isProxy: true,
-    findings: [
-        { name: 'is_honeypot', severity: 'critical', detail: 'Token cannot be sold — honeypot confirmed' },
-        { name: 'has_selfdestruct', severity: 'critical', detail: 'Contract can self-destruct — funds at risk' },
-        { name: 'hidden_owner', severity: 'critical', detail: 'Owner address hidden in private variable' },
-        { name: 'owner_change_balance', severity: 'critical', detail: 'Owner can arbitrarily modify balances' },
-        { name: 'high_tax_risk', severity: 'critical', detail: 'Sell tax can be set up to 99%' },
-        { name: 'fake_token', severity: 'critical', detail: 'Contract name mimics mainstream token (BabyBNB)' },
-        { name: 'can_remove_liquidity', severity: 'critical', detail: 'Owner can remove all liquidity (rug pull vector)' },
-        { name: 'owner_can_drain', severity: 'critical', detail: 'emergencyWithdraw() accessible by owner' },
-        { name: 'unlimited_supply', severity: 'critical', detail: 'No max supply cap — infinite mint risk' },
-        { name: 'transfer_pausable', severity: 'warning', detail: 'Trading can be frozen by owner at any time' },
-        { name: 'is_blacklisted', severity: 'warning', detail: 'Seller addresses can be blacklisted' },
-        { name: 'tax_modifiable', severity: 'warning', detail: 'Fees can be changed post-deployment' },
-    ],
-};
-
-// ============================================================
-//  SCANNING LOGIC
+//  SCANNING — REAL API CALLS
 // ============================================================
 
 function quickScan(address) {
@@ -116,35 +60,84 @@ async function startEnterpriseScan() {
     if (!address || !address.startsWith('0x')) return;
 
     const btn = document.getElementById('scanBtn');
+    const statusEl = document.getElementById('scanStatus');
     btn.classList.add('scanning');
+    btn.disabled = true;
 
-    // Simulate multi-phase scan with progressive reveal
-    await simulatePhase('Fetching bytecode...', 600);
-    await simulatePhase('Analyzing 33 detection fields...', 800);
-    await simulatePhase('Running flash loan analysis...', 500);
-    await simulatePhase('Scanning for MEV vulnerabilities...', 500);
-    await simulatePhase('Computing risk scores...', 300);
+    // Show scanning phases
+    const phases = [
+        'Connecting to BNB Chain RPC...',
+        'Fetching bytecode from BscScan...',
+        'Analyzing 33 detection fields...',
+        'Running flash loan vulnerability scan...',
+        'Detecting MEV/sandwich attack vectors...',
+        'Profiling contract creator wallet...',
+        'Computing aggregated risk scores...',
+    ];
 
-    btn.classList.remove('scanning');
+    if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.className = 'scan-status scanning';
+    }
 
-    // Get scan data
-    const scan = SCAN_PRESETS[address] || { ...SCAM_SCAN };
-    scan.address = address;
+    // Animate phases while waiting for real API response
+    let phaseIndex = 0;
+    const phaseTimer = setInterval(() => {
+        if (statusEl && phaseIndex < phases.length) {
+            statusEl.textContent = '⏳ ' + phases[phaseIndex];
+            phaseIndex++;
+        }
+    }, 1200);
 
-    // Display results
-    displayResults(scan, address);
+    try {
+        const response = await fetch(`${API_BASE}/api/scan/${address}`);
+
+        clearInterval(phaseTimer);
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(err.error || `HTTP ${response.status}`);
+        }
+
+        const scan = await response.json();
+
+        btn.classList.remove('scanning');
+        btn.disabled = false;
+
+        if (statusEl) {
+            statusEl.textContent = `✅ Scan complete in ${scan.scanTimeSeconds}s — ${scan.riskLevel}`;
+            statusEl.className = `scan-status ${scan.riskLevel.toLowerCase()}`;
+        }
+
+        displayResults(scan, address);
+
+        // Refresh stats after scan
+        fetchStats();
+
+    } catch (error) {
+        clearInterval(phaseTimer);
+        btn.classList.remove('scanning');
+        btn.disabled = false;
+
+        if (statusEl) {
+            statusEl.textContent = `❌ ${error.message}`;
+            statusEl.className = 'scan-status error';
+        }
+
+        console.error('Scan failed:', error);
+    }
 }
 
-function simulatePhase(phase, duration) {
-    return new Promise(resolve => setTimeout(resolve, duration));
-}
+// ============================================================
+//  DISPLAY RESULTS
+// ============================================================
 
 function displayResults(scan, address) {
     const area = document.getElementById('resultsArea');
     area.style.display = 'flex';
 
     // Overview
-    document.getElementById('resultTokenName').textContent = scan.name;
+    document.getElementById('resultTokenName').textContent = scan.name || 'Unknown Token';
     document.getElementById('resultAddress').textContent = address;
 
     // Draw gauge
@@ -157,6 +150,12 @@ function displayResults(scan, address) {
     else badges.innerHTML += '<span class="result-badge dangerous">✗ Unverified</span>';
     if (scan.isProxy) badges.innerHTML += '<span class="result-badge proxy">Proxy</span>';
     badges.innerHTML += `<span class="result-badge ${scan.overallRisk <= 30 ? 'verified' : scan.overallRisk <= 60 ? 'proxy' : 'dangerous'}">${scan.riskLevel}</span>`;
+
+    // Scan metadata
+    const metaEl = document.getElementById('scanMeta');
+    if (metaEl) {
+        metaEl.innerHTML = `Scanned in ${scan.scanTimeSeconds}s · Holders: ${scan.holderCount || '—'} · Creator age: ${scan.creatorAge || '—'} days · Creator contracts: ${scan.creatorContracts || '—'}`;
+    }
 
     // Mini scores
     setMiniScore('miniHoneypot', scan.honeypotScore);
@@ -198,7 +197,9 @@ function drawOverviewGauge(score, level) {
 
 function setMiniScore(elementId, score) {
     const el = document.getElementById(elementId);
+    if (!el) return;
     const valueEl = el.querySelector('.mini-value');
+    if (!valueEl) return;
     valueEl.textContent = score;
     const color = score <= 20 ? 'var(--success)' : score <= 50 ? 'var(--warning)' : 'var(--danger)';
     valueEl.style.color = color;
@@ -213,7 +214,7 @@ function renderDetectionFields(fields) {
     for (const [key, def] of Object.entries(DETECTION_FIELDS)) {
         const cat = def.category;
         if (!categories[cat]) categories[cat] = [];
-        const fieldData = fields[key] || { d: false, s: 'safe' };
+        const fieldData = fields?.[key] || { d: false, s: 'safe' };
         categories[cat].push({ key, label: def.label, ...fieldData });
     }
 
@@ -261,12 +262,12 @@ function renderFindings(findings) {
     }
 
     for (const finding of findings) {
-        const icon = finding.severity === 'critical' ? '🔴' : finding.severity === 'warning' ? '🟡' : 'ℹ️';
+        const icon = finding.severity === 'critical' ? '🔴' : finding.severity === 'warning' ? '🟡' : finding.severity === 'high' ? '🟠' : 'ℹ️';
         list.innerHTML += `
       <div class="finding-item ${finding.severity}">
         <span class="finding-icon">${icon}</span>
         <span class="finding-text">${finding.detail || finding.name}</span>
-        <span class="finding-weight ${finding.severity}">${finding.severity.toUpperCase()}</span>
+        <span class="finding-weight ${finding.severity}">${(finding.severity || 'info').toUpperCase()}</span>
       </div>`;
     }
 }
@@ -301,20 +302,43 @@ function removeFromWatchlist(index) {
 
 function initTicker() {
     const track = document.getElementById('tickerTrack');
-    const items = track.innerHTML;
-    track.innerHTML = items + items; // duplicate for seamless loop
+    if (track) {
+        const items = track.innerHTML;
+        track.innerHTML = items + items; // duplicate for seamless loop
+    }
 }
 
 // ============================================================
-//  STAT COUNTERS — Animated number reveal
+//  LIVE STATS — Fetch from API
+// ============================================================
+
+async function fetchStats() {
+    try {
+        const response = await fetch(`${API_BASE}/api/stats`);
+        if (!response.ok) return;
+        const data = await response.json();
+
+        const fieldsEl = document.getElementById('statFields');
+        const scannedEl = document.getElementById('statScanned');
+        const threatsEl = document.getElementById('statThreats');
+
+        if (fieldsEl) fieldsEl.textContent = data.detectionFields || 33;
+        if (scannedEl) scannedEl.textContent = (data.totalScans || 0).toLocaleString();
+        if (threatsEl) threatsEl.textContent = (data.threatsDetected || 0).toLocaleString();
+    } catch {
+        // Stats unavailable — keep existing values
+    }
+}
+
+// ============================================================
+//  STAT COUNTERS — Animated number reveal (initial load)
 // ============================================================
 
 function animateCounters() {
     const counters = [
         { id: 'statFields', target: 33, duration: 800 },
-        { id: 'statScanned', target: 12847, duration: 1500, format: true },
-        { id: 'statThreats', target: 2391, duration: 1200, format: true },
-        { id: 'statAgents', target: 156, duration: 1000 },
+        { id: 'statScanned', target: 0, duration: 500 },
+        { id: 'statThreats', target: 0, duration: 500 },
     ];
 
     for (const counter of counters) {
@@ -322,16 +346,18 @@ function animateCounters() {
         if (!el) continue;
 
         let current = 0;
-        const step = counter.target / (counter.duration / 16);
+        const step = Math.max(1, counter.target / (counter.duration / 16));
+        if (counter.target === 0) {
+            el.textContent = '0';
+            continue;
+        }
         const timer = setInterval(() => {
             current += step;
             if (current >= counter.target) {
                 current = counter.target;
                 clearInterval(timer);
             }
-            el.textContent = counter.format
-                ? Math.round(current).toLocaleString()
-                : Math.round(current);
+            el.textContent = Math.round(current).toLocaleString();
         }, 16);
     }
 }
@@ -343,4 +369,5 @@ function animateCounters() {
 document.addEventListener('DOMContentLoaded', () => {
     initTicker();
     animateCounters();
+    fetchStats();
 });

@@ -91,18 +91,13 @@
           </div>
           <div class="stat-divider"></div>
           <div class="stat">
-            <span class="stat-value" id="statScanned">12,847</span>
+            <span class="stat-value" id="statScanned">0</span>
             <span class="stat-label">Tokens Scanned</span>
           </div>
           <div class="stat-divider"></div>
           <div class="stat">
-            <span class="stat-value" id="statThreats">2,391</span>
-            <span class="stat-label">Threats Blocked</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat">
-            <span class="stat-value" id="statAgents">156</span>
-            <span class="stat-label">Agent Queries</span>
+            <span class="stat-value" id="statThreats">0</span>
+            <span class="stat-label">Threats Detected</span>
           </div>
         </div>
       </div>
@@ -157,13 +152,13 @@
             <span class="scan-btn-loader"></span>
           </button>
         </div>
+        <div class="scan-status" id="scanStatus" style="display:none;"></div>
         <div class="quick-scans">
           <span class="quick-label">Quick scan:</span>
           <button class="quick-btn" onclick="quickScan('0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c')">WBNB</button>
           <button class="quick-btn" onclick="quickScan('0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56')">BUSD</button>
           <button class="quick-btn" onclick="quickScan('0x55d398326f99059fF775485246999027B3197955')">USDT</button>
-          <button class="quick-btn danger" onclick="quickScan('0xDEAD000000000000000000000000000000001337')">⚠ Test
-            Scam</button>
+          <button class="quick-btn" onclick="quickScan('0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82')">CAKE</button>
         </div>
       </div>
 
@@ -176,6 +171,7 @@
             <h3 id="resultTokenName">Token Name</h3>
             <p id="resultAddress" class="mono">0x...</p>
             <div class="result-badges" id="resultBadges"></div>
+            <div class="scan-meta" id="scanMeta"></div>
           </div>
           <div class="overview-scores">
             <div class="mini-score" id="miniHoneypot"><span class="mini-label">Honeypot</span><span

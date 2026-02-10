@@ -1632,3 +1632,149 @@ body {
     padding: 8px 12px;
   }
 }
+
+/* ============================================================
+   Scan Status
+   ============================================================ */
+.scan-status {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.scan-status.scanning {
+  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.05);
+  color: var(--info);
+}
+
+.scan-status.safe,
+.scan-status.low {
+  border-color: rgba(6, 214, 160, 0.3);
+  background: rgba(6, 214, 160, 0.05);
+  color: var(--success);
+}
+
+.scan-status.medium {
+  border-color: rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.05);
+  color: var(--warning);
+}
+
+.scan-status.high,
+.scan-status.critical {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+  color: var(--danger);
+}
+
+.scan-status.error {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+}
+
+/* Scan Metadata */
+.scan-meta {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   Findings
+   ============================================================ */
+.findings-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.findings-panel h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.finding-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.finding-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.finding-item.critical {
+  border-left: 3px solid var(--danger);
+}
+
+.finding-item.warning {
+  border-left: 3px solid var(--warning);
+}
+
+.finding-item.high {
+  border-left: 3px solid #f97316;
+}
+
+.finding-item.safe {
+  border-left: 3px solid var(--success);
+}
+
+.finding-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.finding-text {
+  flex: 1;
+  color: var(--text-secondary);
+}
+
+.finding-weight {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.finding-weight.critical {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.finding-weight.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+}
+
+.finding-weight.high {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+.finding-weight.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--info);
+}

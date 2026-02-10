@@ -4,20 +4,23 @@
   "description": "VibeGuard AI - On-Chain Risk Intelligence Layer for BNB Chain AI Agents",
   "private": true,
   "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "deploy:testnet": "npx hardhat run scripts/deploy.js --network bscTestnet",
-    "agent": "node agent/index.js",
-    "dev": "cd frontend && npm run dev"
+    "agent": "node agent/index.js"
   },
   "dependencies": {
-    "ethers": "^6.13.0",
+    "axios": "^1.7.0",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.0",
-    "axios": "^1.7.0"
+    "ethers": "^6.13.0",
+    "express": "^5.2.1"
   },
   "devDependencies": {
-    "hardhat": "^2.22.0",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-    "@openzeppelin/contracts": "^5.1.0"
+    "@openzeppelin/contracts": "^5.1.0",
+    "hardhat": "^2.22.0"
   }
 }
