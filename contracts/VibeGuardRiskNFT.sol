@@ -5,29 +5,34 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title VibeGuardRiskNFT
  * @notice Dynamic NFT that stores real-time risk scores for BNB Chain pools/tokens.
  *         Other AI agents can query risk scores on-chain before executing trades.
  * @dev Each NFT represents a monitored pool/token with an updateable risk score.
+ *      Includes Pausable circuit breaker and staleness checks.
  */
-contract VibeGuardRiskNFT is ERC721, Ownable {
+contract VibeGuardRiskNFT is ERC721, Ownable, Pausable {
     using Strings for uint256;
 
     struct RiskData {
-        address tokenAddress;       // The token/pool being assessed
-        uint8 riskScore;            // 0-100 (0 = safe, 100 = extreme risk)
-        uint8 honeypotScore;        // 0-100 honeypot probability
-        uint8 rugPullScore;         // 0-100 rug pull probability
-        uint8 liquidityScore;       // 0-100 liquidity health (100 = healthy)
-        uint256 lastUpdated;        // Timestamp of last update
-        bool isActive;              // Whether monitoring is active
-        string riskLevel;           // "SAFE", "LOW", "MEDIUM", "HIGH", "CRITICAL"
+        address tokenAddress;   // The token/pool being assessed
+        uint8   riskScore;      // 0-100 (0 = safe, 100 = extreme risk)
+        uint8   honeypotScore;  // 0-100 honeypot probability
+        uint8   rugPullScore;   // 0-100 rug pull probability
+        uint8   liquidityScore; // 0-100 liquidity health (100 = healthy)
+        uint256 lastUpdated;    // Timestamp of last update
+        bool    isActive;       // Whether monitoring is active
+        string  riskLevel;      // "SAFE", "LOW", "MEDIUM", "HIGH", "CRITICAL"
     }
 
     // Token ID counter
     uint256 private _nextTokenId;
+
+    // Default staleness threshold (24 hours)
+    uint256 public stalenessThreshold = 24 hours;
 
     // Mapping: tokenId => RiskData
     mapping(uint256 => RiskData) public riskRegistry;
@@ -62,6 +67,7 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
         uint8 riskScore,
         string alertType
     );
+    event StalenessThresholdUpdated(uint256 oldThreshold, uint256 newThreshold);
 
     modifier onlyAuthorizedAgent() {
         require(
@@ -76,10 +82,23 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
     }
 
     // ============================================================
-    //                    AGENT MANAGEMENT
+    //  CIRCUIT BREAKER
+    // ============================================================
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    // ============================================================
+    //  AGENT MANAGEMENT
     // ============================================================
 
     function authorizeAgent(address agent) external onlyOwner {
+        require(agent != address(0), "VibeGuard: Zero address");
         authorizedAgents[agent] = true;
         emit AgentAuthorized(agent);
     }
@@ -90,7 +109,18 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
     }
 
     // ============================================================
-    //                    CORE FUNCTIONS
+    //  STALENESS CONFIG
+    // ============================================================
+
+    function setStalenessThreshold(uint256 newThreshold) external onlyOwner {
+        require(newThreshold >= 1 hours, "VibeGuard: Min 1 hour");
+        uint256 old = stalenessThreshold;
+        stalenessThreshold = newThreshold;
+        emit StalenessThresholdUpdated(old, newThreshold);
+    }
+
+    // ============================================================
+    //  CORE FUNCTIONS
     // ============================================================
 
     /**
@@ -98,7 +128,7 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
      * @param tokenAddress The address of the token or LP to monitor
      * @return tokenId The minted NFT ID representing this risk certificate
      */
-    function registerToken(address tokenAddress) external onlyAuthorizedAgent returns (uint256) {
+    function registerToken(address tokenAddress) external onlyAuthorizedAgent whenNotPaused returns (uint256) {
         require(!isRegistered[tokenAddress], "VibeGuard: Already registered");
         require(tokenAddress != address(0), "VibeGuard: Zero address");
 
@@ -107,7 +137,7 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
 
         riskRegistry[tokenId] = RiskData({
             tokenAddress: tokenAddress,
-            riskScore: 50, // Start neutral
+            riskScore: 50,       // Start neutral
             honeypotScore: 0,
             rugPullScore: 0,
             liquidityScore: 50,
@@ -125,11 +155,6 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
 
     /**
      * @notice Update risk scores for a monitored token (called by AI agent)
-     * @param tokenAddress The token being assessed
-     * @param riskScore Overall risk score 0-100
-     * @param honeypotScore Honeypot probability 0-100
-     * @param rugPullScore Rug pull probability 0-100
-     * @param liquidityScore Liquidity health 0-100
      */
     function updateRiskScore(
         address tokenAddress,
@@ -137,7 +162,7 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
         uint8 honeypotScore,
         uint8 rugPullScore,
         uint8 liquidityScore
-    ) external onlyAuthorizedAgent {
+    ) external onlyAuthorizedAgent whenNotPaused {
         require(isRegistered[tokenAddress], "VibeGuard: Token not registered");
         require(riskScore <= 100 && honeypotScore <= 100 && rugPullScore <= 100 && liquidityScore <= 100,
             "VibeGuard: Score out of range");
@@ -169,25 +194,27 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
     }
 
     // ============================================================
-    //              QUERY FUNCTIONS (For Other Agents)
+    //  QUERY FUNCTIONS (For Other Agents)
     // ============================================================
 
     /**
      * @notice Query the risk score of a token (used by trading agents)
-     * @param tokenAddress The token to check
      * @return riskScore The overall risk score (0-100)
      * @return riskLevel The human-readable risk level
      * @return lastUpdated When the score was last updated
+     * @return isStale Whether the data exceeds the staleness threshold
      */
     function queryRisk(address tokenAddress) external view returns (
         uint8 riskScore,
         string memory riskLevel,
-        uint256 lastUpdated
+        uint256 lastUpdated,
+        bool isStale
     ) {
         require(isRegistered[tokenAddress], "VibeGuard: Token not monitored");
         uint256 tokenId = tokenToNftId[tokenAddress];
         RiskData memory data = riskRegistry[tokenId];
-        return (data.riskScore, data.riskLevel, data.lastUpdated);
+        bool stale = (block.timestamp - data.lastUpdated) > stalenessThreshold;
+        return (data.riskScore, data.riskLevel, data.lastUpdated, stale);
     }
 
     /**
@@ -200,18 +227,21 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
     }
 
     /**
-     * @notice Quick safety check — returns true if risk is below threshold
+     * @notice Quick safety check — returns true if risk is below threshold AND data is fresh
      * @param tokenAddress The token to check
      * @param maxRisk Maximum acceptable risk score (e.g., 40)
      */
     function isSafe(address tokenAddress, uint8 maxRisk) external view returns (bool) {
         if (!isRegistered[tokenAddress]) return false;
         uint256 tokenId = tokenToNftId[tokenAddress];
-        return riskRegistry[tokenId].riskScore <= maxRisk;
+        RiskData memory data = riskRegistry[tokenId];
+        // Reject stale data — don't trust old assessments
+        if ((block.timestamp - data.lastUpdated) > stalenessThreshold) return false;
+        return data.riskScore <= maxRisk;
     }
 
     // ============================================================
-    //                  DYNAMIC NFT METADATA
+    //  DYNAMIC NFT METADATA
     // ============================================================
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
@@ -238,7 +268,7 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
     }
 
     // ============================================================
-    //                    INTERNAL HELPERS
+    //  INTERNAL HELPERS
     // ============================================================
 
     function _getRiskLevel(uint8 score) internal pure returns (string memory) {
@@ -250,11 +280,11 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
     }
 
     function _getRiskColor(uint8 score) internal pure returns (string memory) {
-        if (score <= 20) return "#22c55e"; // Green
-        if (score <= 40) return "#84cc16"; // Lime
-        if (score <= 60) return "#eab308"; // Yellow
-        if (score <= 80) return "#f97316"; // Orange
-        return "#ef4444"; // Red
+        if (score <= 20) return "#22c55e";
+        if (score <= 40) return "#84cc16";
+        if (score <= 60) return "#eab308";
+        if (score <= 80) return "#f97316";
+        return "#ef4444";
     }
 
     function _generateSVG(RiskData memory data, string memory color) internal pure returns (string memory) {
@@ -297,7 +327,7 @@ contract VibeGuardRiskNFT is ERC721, Ownable {
     function _toHexStringShort(address addr) internal pure returns (string memory) {
         string memory full = _toHexString(addr);
         bytes memory fullBytes = bytes(full);
-        bytes memory result = new bytes(13); // 0x1234...abcd
+        bytes memory result = new bytes(13);
         for (uint256 i = 0; i < 6; i++) result[i] = fullBytes[i];
         result[6] = '.';
         result[7] = '.';
